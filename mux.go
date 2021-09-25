@@ -2,6 +2,7 @@ package tlsmux
 
 import (
 	"net"
+	"strings"
 	"sync"
 )
 
@@ -18,7 +19,7 @@ func (m *Muxer) Handle(serverName string, handler Handler) {
 		m.hs = make(map[string]Handler)
 	}
 
-	m.hs[serverName] = handler
+	m.hs[strings.ToLower(serverName)] = handler
 }
 
 func (m *Muxer) Serve(c net.Conn) {
@@ -46,7 +47,7 @@ func (m *Muxer) handler(serverName string) (Handler, bool) {
 		return nil, false
 	}
 
-	handler, exists := m.hs[serverName]
+	handler, exists := m.hs[strings.ToLower(serverName)]
 
 	return handler, exists
 }

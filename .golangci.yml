@@ -2,6 +2,11 @@ run:
   deadline: 10m
   skip-files: [ ]
 
+linters-settings:
+  godox:
+    keywords:
+      - FIXME
+
 linters:
   enable-all: true
   disable:
@@ -18,4 +23,6 @@ linters:
 issues:
   exclude-rules:
     - path: sni.go
+      text: "G402: TLS MinVersion too low."
+    - path: sni_test.go
       text: "G402: TLS MinVersion too low."

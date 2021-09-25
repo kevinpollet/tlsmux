@@ -26,8 +26,8 @@ func (m *Muxer) Handle(serverName string, handler Handler) {
 }
 
 // Serve reads the server name and forwards the given net.Conn to the corresponding Handler.
-// TODO: handle panics
-// TODO: client hello timeout
+// TODO: handle panics.
+// TODO: client hello timeout.
 func (m *Muxer) Serve(c net.Conn) {
 	defer func() { _ = c.Close() }()
 

@@ -10,15 +10,16 @@ linters-settings:
 linters:
   enable-all: true
   disable:
-    - 'maligned' # deprecated
-    - 'interfacer' # deprecated
-    - 'scopelint' # deprecated
-    - 'golint' # deprecated
-    - 'wrapcheck'
-    - 'exhaustivestruct'
-    - 'testpackage'
-    - 'paralleltest'
-    - 'tparallel'
+    - maligned # deprecated
+    - interfacer # deprecated
+    - scopelint # deprecated
+    - golint # deprecated
+    - wrapcheck
+    - exhaustivestruct
+    - testpackage
+    - paralleltest
+    - tparallel
+    - gomnd
 
 issues:
   exclude-rules:

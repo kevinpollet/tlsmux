@@ -1,8 +1,6 @@
 package tlsmux
 
-import (
-	"net"
-)
+import "net"
 
 type conn struct {
 	net.Conn

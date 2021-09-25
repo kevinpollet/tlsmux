@@ -47,5 +47,6 @@ func (m *Mux) handler(serverName string) (Handler, bool) {
 	}
 
 	handler, exists := m.hs[serverName]
+
 	return handler, exists
 }

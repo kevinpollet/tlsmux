@@ -17,6 +17,7 @@ func ClientHelloServerName(conn net.Conn) (string, []byte) {
 	cfg := &tls.Config{
 		GetConfigForClient: func(hello *tls.ClientHelloInfo) (*tls.Config, error) {
 			serverName = hello.ServerName
+
 			return nil, nil
 		},
 	}
@@ -34,11 +35,11 @@ type readOnlyConn struct {
 }
 
 // Read reads data from the connection.
-func (r readOnlyConn) Read(b []byte) (n int, err error) {
+func (r readOnlyConn) Read(b []byte) (int, error) {
 	return r.Reader.Read(b)
 }
 
 // Write returns an error on call.
-func (r readOnlyConn) Write(_ []byte) (n int, err error) {
+func (r readOnlyConn) Write(_ []byte) (int, error) {
 	return -1, io.EOF
 }

@@ -13,19 +13,20 @@ func main() {
 		panic(err)
 	}
 
-	cfg := &tls.Config{Certificates: []tls.Certificate{keyPair}}
+	cfg := &tls.Config{
+		MinVersion:   tls.VersionTLS13,
+		Certificates: []tls.Certificate{keyPair},
+	}
 
 	mux := tlsmux.Mux{}
-
 	mux.Handle("foo.localhost", tlsmux.TLSHandlerFunc(cfg, tlsmux.HandlerFunc(func(conn net.Conn) {
 		_, _ = conn.Write([]byte("foo"))
 	})))
-
 	mux.Handle("bar.localhost", tlsmux.TLSHandlerFunc(cfg, tlsmux.HandlerFunc(func(conn net.Conn) {
 		_, _ = conn.Write([]byte("bar"))
 	})))
 
-	l, err := net.Listen("tcp", ":8080")
+	l, err := net.Listen("tcp", "127.0.0.1:8080")
 	if err != nil {
 		panic(err)
 	}

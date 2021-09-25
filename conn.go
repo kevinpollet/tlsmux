@@ -4,13 +4,14 @@ import (
 	"net"
 )
 
-type Conn struct {
+type conn struct {
 	net.Conn
 
 	peeked []byte
 }
 
-func (c *Conn) Read(b []byte) (int, error) {
+// Read reads data from the peeked bytes first and after from the wrapped connection.
+func (c *conn) Read(b []byte) (int, error) {
 	if len(c.peeked) == 0 {
 		return c.Conn.Read(b)
 	}

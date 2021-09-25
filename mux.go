@@ -21,10 +21,10 @@ func (m *Mux) Handle(serverName string, handler Handler) {
 	m.hs[serverName] = handler
 }
 
-func (m *Mux) Serve(conn net.Conn) {
-	defer func() { _ = conn.Close() }()
+func (m *Mux) Serve(c net.Conn) {
+	defer func() { _ = c.Close() }()
 
-	serverName, peeked := ClientHelloServerName(conn)
+	serverName, peeked := ClientHelloServerName(c)
 	if serverName == "" {
 		return
 	}
@@ -34,7 +34,7 @@ func (m *Mux) Serve(conn net.Conn) {
 		return
 	}
 
-	handler.Serve(&Conn{conn, peeked})
+	handler.Serve(&conn{c, peeked})
 }
 
 // handler returns the Handler corresponding to the given serverName.

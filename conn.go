@@ -1,6 +1,8 @@
 package tlsmux
 
-import "net"
+import (
+	"net"
+)
 
 type Conn struct {
 	net.Conn
@@ -14,7 +16,7 @@ func (c *Conn) Read(b []byte) (int, error) {
 	}
 
 	n := copy(b, c.peeked)
-	c.peeked = c.peeked[:n]
+	c.peeked = c.peeked[n:]
 
 	return n, nil
 }

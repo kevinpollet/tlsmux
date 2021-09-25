@@ -37,6 +37,7 @@ func (m *Mux) Serve(conn net.Conn) {
 	handler.Serve(&Conn{conn, peeked})
 }
 
+// handler returns the Handler corresponding to the given serverName.
 func (m *Mux) handler(serverName string) (Handler, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()

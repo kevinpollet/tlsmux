@@ -18,13 +18,13 @@ func main() {
 		Certificates: []tls.Certificate{keyPair},
 	}
 
-	mux := tlsmux.Mux{}
-	mux.Handle("foo.localhost", tlsmux.TLSHandlerFunc(cfg, tlsmux.HandlerFunc(func(conn net.Conn) {
+	m := tlsmux.Muxer{}
+	m.Handle("foo.localhost", tlsmux.TLSHandlerFunc(cfg, func(conn net.Conn) {
 		_, _ = conn.Write([]byte("foo"))
-	})))
-	mux.Handle("bar.localhost", tlsmux.TLSHandlerFunc(cfg, tlsmux.HandlerFunc(func(conn net.Conn) {
+	}))
+	m.Handle("bar.localhost", tlsmux.TLSHandlerFunc(cfg, func(conn net.Conn) {
 		_, _ = conn.Write([]byte("bar"))
-	})))
+	}))
 
 	l, err := net.Listen("tcp", "127.0.0.1:8080")
 	if err != nil {
@@ -37,6 +37,6 @@ func main() {
 			panic(err)
 		}
 
-		go mux.Serve(conn)
+		go m.Serve(conn)
 	}
 }

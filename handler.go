@@ -20,20 +20,21 @@ func (h HandlerFunc) Serve(conn net.Conn) {
 // TLSHandler is in charge of handling TLS connection by using the configured tls.Config.
 type TLSHandler struct {
 	Handler
+
 	Config *tls.Config
 }
 
-func (t TLSHandler) Serve(conn net.Conn) {
-	tlsConn := tls.Server(conn, t.Config)
+func (h TLSHandler) Serve(conn net.Conn) {
+	tlsConn := tls.Server(conn, h.Config)
 
 	if err := tlsConn.Handshake(); err != nil {
 		return
 	}
 
-	t.Handler.Serve(tlsConn)
+	h.Handler.Serve(tlsConn)
 }
 
 // TLSHandlerFunc is an adapter allowing the use of plain func as a TLSHandler.
-func TLSHandlerFunc(config *tls.Config, handler Handler) Handler {
+func TLSHandlerFunc(config *tls.Config, handler HandlerFunc) Handler {
 	return TLSHandler{handler, config}
 }

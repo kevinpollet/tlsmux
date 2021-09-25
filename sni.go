@@ -10,8 +10,8 @@ import (
 // ClientHelloServerName reads the TLS server name from the given net.Conn and returns it with the peeked bytes.
 func ClientHelloServerName(conn net.Conn) (string, []byte) {
 	var (
-		serverName  string
-		peekedBytes bytes.Buffer
+		serverName string
+		peeked     bytes.Buffer
 	)
 
 	cfg := &tls.Config{
@@ -22,10 +22,10 @@ func ClientHelloServerName(conn net.Conn) (string, []byte) {
 	}
 
 	_ = tls.
-		Server(readOnlyConn{Reader: io.TeeReader(conn, &peekedBytes)}, cfg).
+		Server(readOnlyConn{Reader: io.TeeReader(conn, &peeked)}, cfg).
 		Handshake()
 
-	return serverName, peekedBytes.Bytes()
+	return serverName, peeked.Bytes()
 }
 
 type readOnlyConn struct {

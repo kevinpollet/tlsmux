@@ -16,9 +16,9 @@ import (
 )
 
 func main() {
-	m := tlsmux.Muxer{}
+	mux := tlsmux.Mux{}
 
-	m.Handle("httpbin.org", tlsmux.HandlerFunc(func(conn net.Conn) error {
+	mux.Handle("httpbin.org", tlsmux.HandlerFunc(func(conn net.Conn) error {
 		defer func() { _ = conn.Close() }()
 
 		dst, err := net.Dial("tcp", "httpbin.org:443")
@@ -33,7 +33,7 @@ func main() {
 		return nil
 	}))
 
-	m.Handle("foo.localhost", tlsmux.TLSHandlerFunc(tlsConfig("foo.localhost"), func(conn net.Conn) error {
+	mux.Handle("foo.localhost", tlsmux.TLSHandlerFunc(tlsConfig("foo.localhost"), func(conn net.Conn) error {
 		defer func() { _ = conn.Close() }()
 
 		_, err := io.WriteString(conn, "foo")
@@ -46,7 +46,7 @@ func main() {
 		panic(err)
 	}
 
-	if err := m.Serve(l); err != nil {
+	if err := mux.Serve(l); err != nil {
 		panic(err)
 	}
 }

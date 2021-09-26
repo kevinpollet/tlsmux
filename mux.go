@@ -8,15 +8,15 @@ import (
 	"sync"
 )
 
-// Muxer is a TCP connection mux which reads the TLS server name indication
-// to route the connection to the matching Handler.
-type Muxer struct {
+// Mux is a TCP connection multiplexer which reads the TLS server name indication to route the connection
+// to the matching Handler.
+type Mux struct {
 	mu sync.RWMutex
 	hs map[string]Handler
 }
 
 // Handle registers a Handler for the given server name.
-func (m *Muxer) Handle(serverName string, handler Handler) {
+func (m *Mux) Handle(serverName string, handler Handler) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -28,7 +28,7 @@ func (m *Muxer) Handle(serverName string, handler Handler) {
 }
 
 // Serve accepts incoming connections on the given listener and starts a go routine to serve each connection.
-func (m *Muxer) Serve(l net.Listener) error {
+func (m *Mux) Serve(l net.Listener) error {
 	for {
 		conn, err := l.Accept()
 		if err != nil {
@@ -43,7 +43,7 @@ func (m *Muxer) Serve(l net.Listener) error {
 // Handler implementations are responsible for closing the connection.
 // TODO: handle panics?
 // TODO: client hello timeout.
-func (m *Muxer) ServeConn(c net.Conn) error {
+func (m *Mux) ServeConn(c net.Conn) error {
 	serverName, peeked := ClientHelloServerName(c)
 	if serverName == "" {
 		return errors.New("empty server name")
@@ -62,7 +62,7 @@ func (m *Muxer) ServeConn(c net.Conn) error {
 }
 
 // handler returns the Handler matching the given server name value.
-func (m *Muxer) handler(serverName string) (Handler, bool) {
+func (m *Mux) handler(serverName string) (Handler, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 

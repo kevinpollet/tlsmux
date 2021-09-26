@@ -8,7 +8,7 @@ import (
 )
 
 func TestMuxer_Handle(t *testing.T) {
-	m := Muxer{}
+	m := Mux{}
 
 	m.Handle("Foo", HandlerFunc(func(_ net.Conn) error {
 		return nil

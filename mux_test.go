@@ -9,7 +9,7 @@ import (
 
 func TestMuxer_Handle(t *testing.T) {
 	m := Muxer{}
-	m.Handle("Foo", HandlerFunc(func(conn net.Conn) {}))
+	m.Handle("Foo", HandlerFunc(func(_ net.Conn) {}))
 
 	assert.Len(t, m.hs, 1)
 	assert.Contains(t, m.hs, "foo")

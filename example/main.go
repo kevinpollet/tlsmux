@@ -15,12 +15,14 @@ import (
 
 func main() {
 	m := tlsmux.Muxer{}
-
 	m.Handle("foo.localhost", tlsmux.TLSHandlerFunc(tlsConfig("foo.localhost"), func(conn net.Conn) {
+		defer func() { _ = conn.Close() }()
+
 		_, _ = conn.Write([]byte("foo"))
 	}))
-
 	m.Handle("bar.localhost", tlsmux.TLSHandlerFunc(tlsConfig("bar.localhost"), func(conn net.Conn) {
+		defer func() { _ = conn.Close() }()
+
 		_, _ = conn.Write([]byte("bar"))
 	}))
 
@@ -35,17 +37,16 @@ func main() {
 			panic(err)
 		}
 
-		go m.Serve(conn)
+		go m.ServeConn(conn)
 	}
 }
 
 func tlsConfig(dnsName string) *tls.Config {
-	privKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	keyPair, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		panic(err)
 	}
 
-	now := time.Now()
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
@@ -53,27 +54,33 @@ func tlsConfig(dnsName string) *tls.Config {
 		panic(err)
 	}
 
-	tmpl := x509.Certificate{
+	notBefore := time.Now()
+	notAfter := notBefore.Add(24 * time.Hour)
+
+	tpl := x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
-			Organization: []string{"TLSMUX"},
-			CommonName:   "Self Signed Cert",
+			Organization: []string{"tlsmux"},
+			CommonName:   "Self signed cert",
 		},
-		NotBefore:             now,
-		NotAfter:              now.Add(24 * time.Hour),
+		NotBefore:             notBefore,
+		NotAfter:              notAfter,
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
-		BasicConstraintsValid: true,
 		DNSNames:              []string{dnsName},
+		BasicConstraintsValid: true,
 	}
 
-	der, err := x509.CreateCertificate(rand.Reader, &tmpl, &tmpl, &privKey.PublicKey, privKey)
+	der, err := x509.CreateCertificate(rand.Reader, &tpl, &tpl, &keyPair.PublicKey, keyPair)
 	if err != nil {
 		panic(err)
 	}
 
 	return &tls.Config{
-		MinVersion:   tls.VersionTLS12,
-		Certificates: []tls.Certificate{{Certificate: [][]byte{der}, PrivateKey: privKey}},
+		MinVersion: tls.VersionTLS12,
+		Certificates: []tls.Certificate{{
+			Certificate: [][]byte{der},
+			PrivateKey:  keyPair,
+		}},
 	}
 }

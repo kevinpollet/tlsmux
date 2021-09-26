@@ -6,8 +6,8 @@ import (
 	"sync"
 )
 
-// Muxer is a TCP connection multiplexer which reads the TLS ServerName indication
-// to route the connection to the configured Handler.
+// Muxer is a TCP connection mux which reads the TLS server name indication
+// to route the connection to the matching Handler.
 type Muxer struct {
 	mu sync.RWMutex
 	hs map[string]Handler
@@ -25,12 +25,11 @@ func (m *Muxer) Handle(serverName string, handler Handler) {
 	m.hs[strings.ToLower(serverName)] = handler
 }
 
-// Serve reads the server name and forwards the given net.Conn to the corresponding Handler.
-// TODO: handle panics.
+// ServeConn reads the TLS server name indication and forwards the net.Conn to the matching Handler.
+// Handler implementations are responsible for closing the connection.
+// TODO: handle panics?
 // TODO: client hello timeout.
-func (m *Muxer) Serve(c net.Conn) {
-	defer func() { _ = c.Close() }()
-
+func (m *Muxer) ServeConn(c net.Conn) {
 	serverName, peeked := ClientHelloServerName(c)
 	if serverName == "" {
 		return
@@ -44,7 +43,7 @@ func (m *Muxer) Serve(c net.Conn) {
 	handler.Serve(&conn{c, peeked})
 }
 
-// handler returns the Handler corresponding to the given serverName.
+// handler returns the Handler matching the given server name value.
 func (m *Muxer) handler(serverName string) (Handler, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()

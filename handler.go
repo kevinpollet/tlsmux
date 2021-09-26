@@ -7,11 +7,11 @@ import (
 
 // Handler is in charge of handling raw TCP connection.
 type Handler interface {
-	Serve(conn net.Conn)
+	Serve(net.Conn)
 }
 
 // HandlerFunc is an adapter allowing the use of plain func as a Handler.
-type HandlerFunc func(conn net.Conn)
+type HandlerFunc func(net.Conn)
 
 func (h HandlerFunc) Serve(conn net.Conn) {
 	h(conn)
@@ -24,6 +24,7 @@ type TLSHandler struct {
 	Config *tls.Config
 }
 
+// TODO: return errors.
 func (h TLSHandler) Serve(conn net.Conn) {
 	tlsConn := tls.Server(conn, h.Config)
 

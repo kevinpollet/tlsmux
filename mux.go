@@ -1,6 +1,7 @@
 package tlsmux
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"strings"
@@ -34,7 +35,7 @@ func (m *Muxer) Serve(l net.Listener) error {
 			return fmt.Errorf("accept: %w", err)
 		}
 
-		go m.ServeConn(conn)
+		go func() { _ = m.ServeConn(conn) }()
 	}
 }
 
@@ -42,18 +43,22 @@ func (m *Muxer) Serve(l net.Listener) error {
 // Handler implementations are responsible for closing the connection.
 // TODO: handle panics?
 // TODO: client hello timeout.
-func (m *Muxer) ServeConn(c net.Conn) {
+func (m *Muxer) ServeConn(c net.Conn) error {
 	serverName, peeked := ClientHelloServerName(c)
 	if serverName == "" {
-		return
+		return errors.New("empty server name")
 	}
 
 	handler, exists := m.handler(serverName)
-	if !exists {
-		return
+	if exists {
+		return handler.ServeConn(&conn{c, peeked})
 	}
 
-	handler.Serve(&conn{c, peeked})
+	if err := c.Close(); err != nil {
+		return fmt.Errorf("close: %w", err)
+	}
+
+	return fmt.Errorf("no handler for %s", serverName)
 }
 
 // handler returns the Handler matching the given server name value.

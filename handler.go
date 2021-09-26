@@ -2,40 +2,40 @@ package tlsmux
 
 import (
 	"crypto/tls"
+	"fmt"
 	"net"
 )
 
-// Handler is in charge of handling raw TCP connection.
+// Handler is in charge of handling a raw connection.
 type Handler interface {
-	Serve(net.Conn)
+	ServeConn(net.Conn) error
 }
 
-// HandlerFunc is an adapter allowing the use of plain func as a Handler.
-type HandlerFunc func(net.Conn)
+// HandlerFunc is an adapter to allow the use of a function as a Handler.
+type HandlerFunc func(net.Conn) error
 
-func (h HandlerFunc) Serve(conn net.Conn) {
-	h(conn)
+func (h HandlerFunc) ServeConn(conn net.Conn) error {
+	return h(conn)
 }
 
-// TLSHandler is in charge of handling TLS connection by using the configured tls.Config.
+// TLSHandler is a Handler implementation handling TLS connection by using the configured tls.Config.
 type TLSHandler struct {
 	Handler
 
 	Config *tls.Config
 }
 
-// TODO: return errors.
-func (h TLSHandler) Serve(conn net.Conn) {
+func (h TLSHandler) ServeConn(conn net.Conn) error {
 	tlsConn := tls.Server(conn, h.Config)
 
 	if err := tlsConn.Handshake(); err != nil {
-		return
+		return fmt.Errorf("handshake: %w", err)
 	}
 
-	h.Handler.Serve(tlsConn)
+	return h.Handler.ServeConn(tlsConn)
 }
 
-// TLSHandlerFunc is an adapter allowing the use of plain func as a TLSHandler.
-func TLSHandlerFunc(config *tls.Config, handler HandlerFunc) Handler {
+// TLSHandlerFunc is an adapter to allow the use of a function as a TLSHandler.
+func TLSHandlerFunc(config *tls.Config, handler HandlerFunc) TLSHandler {
 	return TLSHandler{handler, config}
 }

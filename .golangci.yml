@@ -20,6 +20,7 @@ linters:
     - paralleltest
     - tparallel
     - gomnd
+    - goerr113
 
 issues:
   exclude-rules:

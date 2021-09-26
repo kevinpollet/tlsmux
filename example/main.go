@@ -6,6 +6,8 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"io"
+	"log"
 	"math/big"
 	"net"
 	"time"
@@ -15,15 +17,25 @@ import (
 
 func main() {
 	m := tlsmux.Muxer{}
+
+	m.Handle("httpbin.org", tlsmux.HandlerFunc(func(conn net.Conn) {
+		defer func() { _ = conn.Close() }()
+
+		dst, err := net.Dial("tcp", "httpbin.org:443")
+		if err != nil {
+			log.Println(err)
+
+			return
+		}
+		defer func() { _ = dst.Close() }()
+
+		go func() { _, _ = io.Copy(dst, conn) }()
+		_, _ = io.Copy(conn, dst)
+	}))
+
 	m.Handle("foo.localhost", tlsmux.TLSHandlerFunc(tlsConfig("foo.localhost"), func(conn net.Conn) {
 		defer func() { _ = conn.Close() }()
-
-		_, _ = conn.Write([]byte("foo"))
-	}))
-	m.Handle("bar.localhost", tlsmux.TLSHandlerFunc(tlsConfig("bar.localhost"), func(conn net.Conn) {
-		defer func() { _ = conn.Close() }()
-
-		_, _ = conn.Write([]byte("bar"))
+		_, _ = io.WriteString(conn, "foo")
 	}))
 
 	l, err := net.Listen("tcp", "127.0.0.1:8080")

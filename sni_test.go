@@ -2,6 +2,7 @@ package tlsmux
 
 import (
 	"crypto/tls"
+	"io"
 	"net"
 	"testing"
 
@@ -12,16 +13,23 @@ import (
 func TestClientHelloServerName(t *testing.T) {
 	c, s := net.Pipe()
 
-	defer func() { _ = s.Close() }()
-
+	doneCh := make(chan struct{})
 	go func() {
-		defer func() { _ = c.Close() }()
+		defer close(doneCh)
 
 		err := tls.Client(c, &tls.Config{ServerName: "foo"}).Handshake()
+		require.Error(t, io.EOF, err)
+
+		err = c.Close()
 		require.NoError(t, err)
 	}()
 
 	serverName, peeked := ClientHelloServerName(s)
+
+	err := s.Close()
+	require.NoError(t, err)
+
+	<-doneCh
 
 	assert.NotEmpty(t, peeked)
 	assert.Equal(t, "foo", serverName)

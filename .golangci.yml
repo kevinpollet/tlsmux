@@ -7,6 +7,10 @@ linters-settings:
     keywords:
       - FIXME
 
+  funlen:
+    lines: -1
+    statements: 50
+
 linters:
   enable-all: true
   disable:
@@ -21,10 +25,13 @@ linters:
     - tparallel
     - gomnd
     - goerr113
+    - wsl
 
 issues:
   exclude-rules:
     - path: sni.go
       text: "G402: TLS MinVersion too low."
     - path: sni_test.go
+      text: "G402: TLS MinVersion too low."
+    - path: mux_test.go
       text: "G402: TLS MinVersion too low."

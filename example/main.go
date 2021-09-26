@@ -31,13 +31,8 @@ func main() {
 		panic(err)
 	}
 
-	for {
-		conn, err := l.Accept()
-		if err != nil {
-			panic(err)
-		}
-
-		go m.ServeConn(conn)
+	if err := m.Serve(l); err != nil {
+		panic(err)
 	}
 }
 

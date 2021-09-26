@@ -1,6 +1,7 @@
 package tlsmux
 
 import (
+	"fmt"
 	"net"
 	"strings"
 	"sync"
@@ -23,6 +24,18 @@ func (m *Muxer) Handle(serverName string, handler Handler) {
 	}
 
 	m.hs[strings.ToLower(serverName)] = handler
+}
+
+// Serve accepts incoming connections on the given listener and starts a go routine to serve each connection.
+func (m *Muxer) Serve(l net.Listener) error {
+	for {
+		conn, err := l.Accept()
+		if err != nil {
+			return fmt.Errorf("accept: %w", err)
+		}
+
+		go m.ServeConn(conn)
+	}
 }
 
 // ServeConn reads the TLS server name indication and forwards the net.Conn to the matching Handler.

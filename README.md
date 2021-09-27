@@ -3,7 +3,7 @@
 [![build](https://github.com/kevinpollet/tlsmux/actions/workflows/main.yml/badge.svg)](https://github.com/kevinpollet/tlsmux/actions)
 [![GoDoc](https://godoc.org/github.com/kevinpollet/tlsmux?status.svg)](https://pkg.go.dev/github.com/kevinpollet/tlsmux)
 
-Package providing an implementation of a `net.Conn` multiplexer based on the TLS [SNI](https://www.cloudflare.com/learning/ssl/what-is-sni/) (Server Name Indication) sent by a client.
+Go package providing an implementation of a `net.Conn` multiplexer based on the TLS [SNI](https://www.cloudflare.com/learning/ssl/what-is-sni/) (Server Name Indication) sent by a client.
 
 ## Installation
 

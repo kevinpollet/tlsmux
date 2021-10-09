@@ -41,16 +41,16 @@ Implementations are responsible for closing the connection.
 
 ```go
 mux.Handle("server.name", tlsmux.HandlerFunc(func(conn net.Conn) error {
-    defer func() { _ = conn.Close() }()
+    defer conn.Close()
 
-    dst, err := net.Dial("tcp", "127.0.0.1:443")
+    dstConn, err := net.Dial("tcp", "127.0.0.1:443")
     if err != nil {
         return fmt.Errorf("dial: %w", err)
     }
-    defer func() { _ = dst.Close() }()
+    defer dstConn.Close()
 
-    go func() { _, _ = io.Copy(dst, conn) }()
-    _, _ = io.Copy(conn, dst)
+    go func() { io.Copy(dstConn, conn) }()
+    io.Copy(conn, dstConn)
 
     return nil
 }))
@@ -69,10 +69,9 @@ cfg := &tls.Config{
 }
 
 mux.Handle("foo.localhost", tlsmux.TLSHandlerFunc(cfg, func(conn net.Conn) error {
-    defer func() { _ = conn.Close() }()
+    defer conn.Close()
 
     _, err := io.WriteString(conn, "foo")
-
     return err
 }))
 ```

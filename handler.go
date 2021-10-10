@@ -7,12 +7,7 @@ import (
 	"net"
 )
 
-// Handler is in charge of handling a raw connection.
-type Handler interface {
-	ServeConn(net.Conn) error
-}
-
-// HandlerFunc is an adapter to allow the use of a function as a Handler.
+// HandlerFunc is an adapter to allow the use of ordinary functions as a Handler.
 type HandlerFunc func(net.Conn) error
 
 func (h HandlerFunc) ServeConn(conn net.Conn) error {
@@ -46,7 +41,6 @@ type ProxyHandler struct {
 	Addr string
 }
 
-// TODO handle errors.
 func (p ProxyHandler) ServeConn(conn net.Conn) error {
 	defer func() { _ = conn.Close() }()
 
@@ -56,13 +50,20 @@ func (p ProxyHandler) ServeConn(conn net.Conn) error {
 	}
 	defer func() { _ = dstConn.Close() }()
 
-	go func() { _, _ = io.Copy(dstConn, conn) }()
-	_, _ = io.Copy(conn, dstConn)
+	errCh := make(chan error, 1)
 
-	return nil
+	go func() { copyConn(errCh, dstConn, conn) }()
+	copyConn(errCh, conn, dstConn)
+
+	return <-errCh
 }
 
 // ProxyHandlerFunc is an adapter to allow the use of a ProxyHandler as a HandlerFunc.
 func ProxyHandlerFunc(addr string) HandlerFunc {
 	return ProxyHandler{Addr: addr}.ServeConn
+}
+
+func copyConn(errCh chan<- error, dst io.Writer, src io.Reader) {
+	_, err := io.Copy(dst, src)
+	errCh <- err
 }

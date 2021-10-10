@@ -8,6 +8,11 @@ import (
 	"sync"
 )
 
+// Handler is in charge of handling as connection.
+type Handler interface {
+	ServeConn(net.Conn) error
+}
+
 // Mux is a TCP connection multiplexer which reads the TLS server name indication to route the connection
 // to the matching Handler.
 type Mux struct {

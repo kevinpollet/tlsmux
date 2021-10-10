@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMuxer_Handle(t *testing.T) {
+func TestMux_Handle(t *testing.T) {
 	m := Mux{}
 
 	m.Handle("Foo", HandlerFunc(func(_ net.Conn) error {

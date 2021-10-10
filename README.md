@@ -24,13 +24,8 @@ if err != nil {
     panic(err)
 }
 
-for {
-    conn, err := l.Accept()
-    if err != nil {
-        panic(err)	
-    }
-	
-    go mux.ServeConn(conn)
+if err := mux.Serve(l); err != nil {
+    log.Fatal(err)
 }
 ```
 
@@ -58,7 +53,7 @@ mux.Handle("server.name", tlsmux.HandlerFunc(func(conn net.Conn) error {
 
 ### TLSHandler
 
-The `TLSHandler` struct is an `Handler` implementation allowing to terminate the TLS connection with the configured `tls.Config`.
+The `TLSHandler` struct is a `Handler` implementation allowing to terminate the TLS connection with the configured `tls.Config`.
 Thus, the `net.Conn` parameter of a `TLSHandler` if of type `tls.Conn`.  
 Implementations are responsible for closing the connection.
 
@@ -74,6 +69,25 @@ mux.Handle("foo.localhost", tlsmux.TLSHandlerFunc(cfg, func(conn net.Conn) error
     _, err := io.WriteString(conn, "foo")
     return err
 }))
+```
+
+### ProxyHandler
+
+The `ProxyHandler` struct is a `Handler` implementation forwarding the connection bytes to the configured `Address`.
+
+```go
+mux.Handle("foo.localhost", tlsmux.ProxyHandler{Addr: "127.0.0.1:443"})
+```
+
+The `ProxyHandlerFunc` is an adapter allowing the use of a `ProxyHandler` as a `HandlerFunc`.
+
+```go
+cfg := &tls.Config{
+    MinVersion: tls.VersionTLS13,
+    Certificates: []tls.Certificate{cert},
+}
+
+mux.Handle("foo.localhost", tlsmux.TLSHandlerFunc(cfg, tlsmux.ProxyHandlerFunc("127.0.0.1:80"))
 ```
 
 ## License

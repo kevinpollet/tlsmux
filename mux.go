@@ -28,6 +28,7 @@ func (m *Mux) Handle(serverName string, handler Handler) {
 }
 
 // Serve accepts incoming connections on the given listener and starts a go routine to serve each connection.
+// TODO handle errors.
 func (m *Mux) Serve(l net.Listener) error {
 	for {
 		conn, err := l.Accept()
@@ -41,7 +42,7 @@ func (m *Mux) Serve(l net.Listener) error {
 
 // ServeConn reads the TLS server name indication and forwards the net.Conn to the matching Handler.
 // Handler implementations are responsible for closing the connection.
-// TODO: handle panics?
+// TODO: handle panics
 // TODO: client hello timeout.
 func (m *Mux) ServeConn(c net.Conn) error {
 	serverName, peeked := ClientHelloServerName(c)

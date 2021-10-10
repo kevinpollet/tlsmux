@@ -3,6 +3,7 @@ package tlsmux
 import (
 	"crypto/tls"
 	"fmt"
+	"io"
 	"net"
 )
 
@@ -38,4 +39,30 @@ func (h TLSHandler) ServeConn(conn net.Conn) error {
 // TLSHandlerFunc is an adapter to allow the use of a function as a TLSHandler.
 func TLSHandlerFunc(config *tls.Config, handler HandlerFunc) TLSHandler {
 	return TLSHandler{handler, config}
+}
+
+// ProxyHandler is a Handler implementation forwarding the connection bytes to the configured Addr.
+type ProxyHandler struct {
+	Addr string
+}
+
+// TODO handle errors.
+func (p ProxyHandler) ServeConn(conn net.Conn) error {
+	defer func() { _ = conn.Close() }()
+
+	dstConn, err := net.Dial("tcp", p.Addr)
+	if err != nil {
+		return fmt.Errorf("dial: %w", err)
+	}
+	defer func() { _ = dstConn.Close() }()
+
+	go func() { _, _ = io.Copy(dstConn, conn) }()
+	_, _ = io.Copy(conn, dstConn)
+
+	return nil
+}
+
+// ProxyHandlerFunc is an adapter to allow the use of a ProxyHandler as a HandlerFunc.
+func ProxyHandlerFunc(addr string) HandlerFunc {
+	return ProxyHandler{Addr: addr}.ServeConn
 }

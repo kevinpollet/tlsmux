@@ -14,10 +14,11 @@ linters-settings:
 linters:
   enable-all: true
   disable:
-    - maligned # deprecated
-    - interfacer # deprecated
-    - scopelint # deprecated
-    - golint # deprecated
+    - maligned # Deprecated.
+    - interfacer # Deprecated.
+    - scopelint # Deprecated.
+    - golint # Deprecated.
+    - ireturn
     - wrapcheck
     - exhaustivestruct
     - testpackage
@@ -26,6 +27,8 @@ linters:
     - gomnd
     - goerr113
     - wsl
+    - nilnil
+    - varnamelen
 
 issues:
   exclude-rules:
